@@ -6,39 +6,31 @@ from parameters import *
 class GameUi():
     def __init__(self):
         self.screen = pygame.display.set_mode((800, 600))
-        rect = pygame.draw.rect(self.screen, 0x000000, (0, 0, 800, 600))
+        rect = pygame.draw.rect(self.screen, BG_COLOR, (0, 0, 800, 600))
         pygame.display.update(rect)
 
     # move this to a 'draw panel' sub function?
     def draw_score(self, score):
         myfont = pygame.font.SysFont("freesansbold.ttf", 32)
         
-        text_surface = myfont.render("Score: {}".format(score), True, 0xffffffff, (0,0,0))
+        text_surface = myfont.render("Score: {}".format(score), True, BG_COLOR, (0,0,0))
         self.screen.blit(text_surface, (605,10))
     def draw_board(self, board):
         rects = []
 
         for x, col in enumerate(game_engine.board):
             for y, value in enumerate(col):
-                if value == 0:
-                    rects.append(pygame.draw.rect(self.screen, 0x1B1212, (x*50+5, y * 50+5, 40, 40 )))
-                if value == 1:
-                    rects.append(pygame.draw.rect(self.screen, 0x151b54, (x*50+5, y * 50+5, 40, 40 )))
-                if value == 2:
-                    rects.append(pygame.draw.rect(self.screen, 0x002200, (x*50 + 5, y * 50 + 5, 40,40) ))
+                if value == Cell.EMPTY:
+                    rects.append(pygame.draw.rect(self.screen, EMPTY_COLOR, (x*50+5, y * 50+5, 40, 40 )))
+                if value == Cell.FOOD:
+                    rects.append(pygame.draw.rect(self.screen, FOOD_COLOR, (x*50+5, y * 50+5, 40, 40 )))
+                if value == Cell.BODY:
+                    rects.append(pygame.draw.rect(self.screen, BODY_COLOR, (x*50 + 5, y * 50 + 5, 40,40) ))
 
-                # if board[x][y] == 0:
-                #     rects.append(pygame.draw.rect(screen, 0x1B1212, (x*50+5, y * 50+5, 40, 40 )))
-                # if board[x][y] == 1:
-                #     rects.append(pygame.draw.rect(screen, 0x151b54, (x*50+5, y * 50+5, 40, 40 )))
-                # rects.append(pygame.draw.rect(screen, 0x151b54, (x*50, y * 50, 50, 50) ))
-                # rects.append(pygame.draw.rect(screen, 0x0000FF, (x*50+5, y * 50+5, 40, 40 )))
-                #rects.append(pygame.draw.rect(screen, 0x353935, (x*50, y * 50, 50, 50) ))
-                    
         pygame.display.update(rects)
 
 if __name__ == "__main__":
-    # pygame stuffs
+    # pygame stuff
     pygame.init()
     pygame.font.init()
     

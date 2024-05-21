@@ -17,7 +17,7 @@ class Engine():
         self.height = h
 
         self.board = np.zeros((h, w))
-        self.board[0][0] = 1
+        self.board[0][0] = Cell.BODY
 
         self.head = Point(0,0)
         self.snake = []
@@ -35,7 +35,7 @@ class Engine():
                 break
         
         self.food = new_food
-        self.board[self.food.x][self.food.y] = 2
+        self.board[self.food.x][self.food.y] = Cell.FOOD
 
 
     # -- External Interfaces -- #
@@ -87,14 +87,14 @@ class Engine():
             self.snake_len += 1
 
         self.head = new_head
-        self.board[self.head.x][self.head.y] = 1
+        self.board[self.head.x][self.head.y] = Cell.BODY
         self.snake.append(self.head)
-        self.board[self.food.x][self.food.y] = 2
+        self.board[self.food.x][self.food.y] = Cell.FOOD
 
         if len(self.snake) > self.snake_len:
             tail = self.snake.pop(0)
 
-            self.board[tail.x][tail.y] = 0
+            self.board[tail.x][tail.y] = Cell.EMPTY
 
         return True
 
