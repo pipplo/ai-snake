@@ -40,8 +40,12 @@ if __name__ == "__main__":
             game_engine.set_direction('Right')
 
         curses.napms(100)
-        if game_engine.step() == False:
+
+        done, _, _ =  game_engine.step()
+        
+        if done == True:
             break
+
         game_ui.draw_board(game_engine.board)
         game_ui.draw_score(game_engine.snake_len)
         
