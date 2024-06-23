@@ -146,6 +146,7 @@ def train():
         cur_state = game_engine.get_state()
         done = False
 
+        agent.epsilon = 0
         while not done :
             # map agent action to direction
             action = agent.get_action(game_engine.get_state())
@@ -160,7 +161,7 @@ def train():
 
             done, reward, new_state = game_engine.step()
 
-            curses.napms(180)
+            curses.napms(100)
             game_ui.draw_board(game_engine.board)
             game_ui.draw_score(game_engine.snake_len)
 
