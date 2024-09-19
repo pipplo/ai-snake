@@ -10,13 +10,19 @@ Install the necessary python requirements (requirements.txt) and use one of the 
 
 There is a console version of the game which uses wasd controls that can be launched using
 
-`python game_curses.py`
+```
+python game_curses.py
+```
 
 There is a GUI version of the game which uses direction keys
 
-`python game_ui.py`
+```
+python game_ui.py
+```
 
 ## Traditional Q-Learning
 Launch an agent to do training using traditional Q-Learning. This will run 100k training episodes to fill in the Q table and then launch the gui to play a few games using the trained q-table so you can visualize how well the system learns.
 
-`python simple_agent.py'
+```
+python simple_agent.py
+```
