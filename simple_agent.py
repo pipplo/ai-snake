@@ -103,7 +103,6 @@ def train():
 
         # create game engine
         game_engine = Engine(ROW_COUNT, ROW_COUNT)
-        game_ui = GameCurses()
 
         cur_state = game_engine.get_state()
         done = False
@@ -161,7 +160,7 @@ def train():
 
             done, reward, new_state = game_engine.step()
 
-            curses.napms(100)
+            pygame.time.delay(150)
             game_ui.draw_board(game_engine.board)
             game_ui.draw_score(game_engine.snake_len)
 
