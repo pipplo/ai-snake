@@ -2,3 +2,5 @@ pygame
 numpy
 pynput
 tqdm
+
+pytorch

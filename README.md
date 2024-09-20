@@ -26,3 +26,20 @@ Launch an agent to do training using traditional Q-Learning. This will run 100k 
 ```
 python simple_agent.py
 ```
+
+## Deep Q-Learning
+This path uses a pytorch model to learn the Q-Table using Deep QLearning. 
+
+### Training
+Run deep_q_agent.py to run training. Paramaters are configurable in the training function (number of games, etc). The model is saved to disk periodically
+
+```
+python deep_q_agent.py
+```
+
+### Playing
+You can watch the model play the game based on the last saved version using the deep_q_play script
+
+```
+python deep_q_play.py
+```

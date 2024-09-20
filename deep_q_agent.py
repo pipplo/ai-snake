@@ -1,16 +1,25 @@
+import torch
+import torch.nn as nn
+
 import random
 import numpy as np
 from collections import defaultdict
 from tqdm import tqdm
+
+import deep_q_learning
+import deep_q_replay_buffer
+from deep_q_replay_buffer import ReplayEvent
 
 from engine import Engine
 from parameters import *
 from game_ui import GameUi
 import pygame
 
-class SimpleAgent:
+class DeepQAgent:
     def __init__(
             self,
+            model,
+            replay_buffer,
             learning_rate,
             start_epsilon,
             epsilon_decay,
@@ -18,10 +27,9 @@ class SimpleAgent:
             discount_factor = .9,
             ):
         
-        # create a dict representing the q table. It's a 'default dict' that will default to the
-        # given input entry
-        self.q_values = defaultdict(lambda: np.zeros(4)) # TODO: Paramaterize the action count. 
-
+        self.model = model
+        self.target_model = model
+        self.replay_buffer = replay_buffer
         # Will paramaterize some of these later
         self.lr = learning_rate
         self.epsilon = start_epsilon
@@ -29,13 +37,19 @@ class SimpleAgent:
         self.final_epsilon = final_epsilon
         self.discount_factor = discount_factor # sometimes referred to as gamma
 
+        self.train_count = 0
+
+    @torch.no_grad()
     def get_action(self, state): # get the action (and apply epsilon)
 
         # first let's see if we should do a random selection
         if np.random.random() < self.epsilon:
             return random.randrange(4)
         
-        q_values = self.q_values[state]
+        # convert state to a tensor
+        state_tensor = torch.tensor(np.array([state], dtype=np.float32))
+        
+        q_values = self.model(state_tensor)
 
         return np.argmax(q_values)
         
@@ -47,19 +61,59 @@ class SimpleAgent:
             reward,
             terminated,
             new_state,
-            ): # update the q table based on results of last action
+            ):
 
-        # This uses a bunch of math from different locations
-        future_q = (not terminated) * np.max(self.q_values[new_state]) 
+        # The logic here is to update the replay buffer with every new transition observed
+        # Then if we have a big enough replay buffer, then we can start to do some training
+        # Then after enough training iterations we will periodically replace the target_network 
+        # with the current network
 
-        temporal_difference = ( reward + self.discount_factor * future_q - self.q_values[cur_state][action] )
+        self.replay_buffer.append(ReplayEvent(cur_state, action, reward, terminated, new_state))
 
-        self.q_values[cur_state][action] = self.q_values[cur_state][action] + (self.lr * temporal_difference)
+        if len(self.replay_buffer) < 10000: # don't start doing replay sampling until we have enough samples
+            return
+        
+        self.train_step()
 
-        #print(temporal_difference)
+        if self.train_count % 10000 == 0:
+            self.target_model.load_state_dict(self.model.state_dict())
+            torch.save(self.model.state_dict(), "model/net")
+            print("Update")
+
+    def calc_loss(self, batch, device="cpu"):
+        # unpack batch
+        states, actions, rewards, dones, next_states = batch
+
+        # convert everything from batch to torch tensors and move it to device
+        states_v = torch.tensor(states).to(device, dtype=torch.float32)
+        next_states_v = torch.tensor(next_states).to(device, dtype=torch.float32)
+        actions_v = torch.tensor(actions).to(device, dtype=torch.int64)
+        rewards_v = torch.tensor(rewards).to(device, dtype=torch.float32)
+        done_mask = torch.ByteTensor(dones).to(device)
+        done_mask = done_mask.to(torch.bool)
+
+        # get output from NNs which is used for calculating state action value with discount
+        state_action_values = self.model(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
+        next_state_values = self.target_model(next_states_v).max(1)[0]
+        next_state_values[done_mask] = 0.0
+        next_state_values = next_state_values.detach()
+
+        expected_state_action_values = next_state_values * self.discount_factor + rewards_v
+        # Calculate NN loss
+        return nn.MSELoss()(state_action_values, expected_state_action_values)
+    
+    def train_step(self):
+        self.model.optimizer.zero_grad()
+        batch = self.replay_buffer.sample(5)
+        loss_t = self.calc_loss(batch)
+        loss_t.backward()
+        self.model.optimizer.step()
+
+        self.train_count += 1
 
     def decay_epsilon(self):
         self.epsilon = max(self.final_epsilon, self.epsilon - self.epsilon_decay)
+
 
 def train():
     n_episodes = 100000
@@ -69,7 +123,12 @@ def train():
     final_epsilon = .01
     epsilon_decay = start_epsilon / (n_episodes/2)
 
-    agent = SimpleAgent(learning_rate=learning_rate, start_epsilon=start_epsilon, epsilon_decay=epsilon_decay, final_epsilon=final_epsilon)
+    # TODO switch to loading the network
+    neural_net = deep_q_learning.simple_net()
+    replay_buffer = deep_q_replay_buffer.ReplayBuffer()
+
+    torch.save(neural_net.state_dict(), "model/net")
+    agent = DeepQAgent(model=neural_net, replay_buffer=replay_buffer, learning_rate=learning_rate, start_epsilon=start_epsilon, epsilon_decay=epsilon_decay, final_epsilon=final_epsilon)
 
     max_score = 0
     max_step_count = 0
@@ -101,8 +160,8 @@ def train():
 
 
         agent.decay_epsilon()
-        max_score = max(game_engine.snake_len, max_score)
 
+        max_score = max(game_engine.snake_len, max_score)
         max_step_count = max(game_engine.step_count, max_step_count)
         
     
