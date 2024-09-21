@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 # Game Configs
-ROW_COUNT = 12
+ROW_COUNT = 24
 
 class Cell(IntEnum):
     EMPTY = 0

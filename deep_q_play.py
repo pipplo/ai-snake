@@ -27,7 +27,7 @@ for i in range(10):
     pygame.font.init()
 
     game_engine = Engine(ROW_COUNT, ROW_COUNT)
-    game_ui = GameUi()
+    game_ui = GameUi(game_engine.board)
 
     cur_state = game_engine.get_state()
     done = False

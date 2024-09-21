@@ -3,11 +3,17 @@ import pygame
 from engine import Engine
 from parameters import *
 
+import math
+
 class GameUi():
-    def __init__(self):
+    def __init__(self, board):
         self.screen = pygame.display.set_mode((900, 700))
         rect = pygame.draw.rect(self.screen, BG_COLOR, (0, 0, 900, 700))
         pygame.display.update(rect)
+
+        count = len(board)
+        # width of each block is 700/count
+        self.width = math.floor(700/count)
 
     # move this to a 'draw panel' sub function?
     def draw_score(self, score):
@@ -25,11 +31,11 @@ class GameUi():
         for x, col in enumerate(board):
             for y, value in enumerate(col):
                 if value == Cell.EMPTY:
-                    rects.append(pygame.draw.rect(self.screen, EMPTY_COLOR, (x*50+5, y * 50+5, 40, 40 )))
+                    rects.append(pygame.draw.rect(self.screen, EMPTY_COLOR, (x*self.width, y * self.width, self.width, self.width )))
                 if value == Cell.FOOD:
-                    rects.append(pygame.draw.rect(self.screen, FOOD_COLOR, (x*50+5, y * 50+5, 40, 40 )))
+                    rects.append(pygame.draw.rect(self.screen, FOOD_COLOR, (x*self.width, y * self.width, self.width, self.width )))
                 if value == Cell.BODY:
-                    rects.append(pygame.draw.rect(self.screen, BODY_COLOR, (x*50 + 5, y * 50 + 5, 40,40) ))
+                    rects.append(pygame.draw.rect(self.screen, BODY_COLOR, (x*self.width, y * self.width, self.width,self.width) ))
 
         pygame.display.update(rects)
 
