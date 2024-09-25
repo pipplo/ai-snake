@@ -9,7 +9,7 @@ class Engine():
     def __init__(self, h, w):
         # These are some parameters / enums for the class
         # Using Point as a speed vector
-        self.direction_map = {"Up":Point(0, -1), "Down":Point(0, 1), "Right":Point(1, 0), "Left":Point(-1,0)}
+        self.direction_map = {"Up":Point(0, -1), "Down":Point(0, 1), "Right":Point(1, 0), "Left":Point(-1,0), "UpLeft":Point(-1, -1), "UpRight":Point(1,-1), "DownLeft":Point(-1, 1), "DownRight":Point(1,1)}
     
         self.cur_direction = self.direction_map["Right"]
         
@@ -81,12 +81,12 @@ class Engine():
         return False
     
     def step(self):
-        reward = -1 # step reward defaults to 0
+        reward = 0 # step reward defaults to 0
 
         # Get direction vector and update head
         new_head = Point(self.head.x + self.cur_direction.x, self.head.y + self.cur_direction.y)
 
-        if self.step_count > 20000: # ending game early
+        if self.step_count > 10000: # ending game early
             self.done = True
             reward = -100 
             print("Timed Out")
@@ -138,3 +138,42 @@ class Engine():
 
         return tuple(state)
 
+    def find_distance(self, head, direction, cell_type):
+        count = 1
+
+        x = self.direction_map[direction].x + head.x
+        y = self.direction_map[direction].y + head.y
+
+        while self.board[x][y] != cell_type:
+            x += self.direction_map[direction].x
+            y += self.direction_map[direction].y
+
+            count += 1
+
+        return count
+
+    # This state will represent 8 directions from the snakes current head. A floating point value normalized from 0-1 on distance away.
+    # let's also represent the distance to food along 8 directions
+    def get_extended_state(self):
+        state = [
+            # self.find_distance(self.head, "Left", Cell.BODY),
+            # self.find_distance(self.head, "Up", Cell.BODY),
+            # self.find_distance(self.head, "Right", Cell.BODY),
+            # self.find_distance(self.head, "Down", Cell.BODY),
+            self.board[self.head.x + self.direction_map["Left"].x][self.head.y + self.direction_map["Left"].y],
+            self.board[self.head.x + self.direction_map["Up"].x][self.head.y + self.direction_map["Up"].y],
+            self.board[self.head.x + self.direction_map["Down"].x][self.head.y + self.direction_map["Down"].y],
+            self.board[self.head.x + self.direction_map["Right"].x][self.head.y + self.direction_map["Right"].y],
+
+            self.board[self.head.x + self.direction_map["UpLeft"].x][self.head.y + self.direction_map["UpLeft"].y],
+            self.board[self.head.x + self.direction_map["UpRight"].x][self.head.y + self.direction_map["UpRight"].y],
+            self.board[self.head.x + self.direction_map["DownLeft"].x][self.head.y + self.direction_map["DownLeft"].y],
+            self.board[self.head.x + self.direction_map["DownRight"].x][self.head.y + self.direction_map["DownRight"].y],
+
+            self.food.x < self.head.x,
+            self.food.y < self.head.y,
+            self.food.x > self.head.x,
+            self.food.y > self.head.y
+        ]
+
+        return tuple(state)

@@ -119,12 +119,10 @@ def train():
 
 
         agent.decay_epsilon()
-        max_score = max(game_engine.snake_len, max_score)
 
+        max_score = max(game_engine.snake_len, max_score)
         max_step_count = max(game_engine.step_count, max_step_count)
-        
-    
-    # print(agent.q_values)
+            
     print((max_score, max_step_count))
 
     return agent

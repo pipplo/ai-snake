@@ -9,7 +9,7 @@ class simple_net(nn.Module):
         # Input is the data from the state at Engine::get_state
         # 8 input values
         self.model = nn.Sequential(
-            nn.Linear(8, 64),
+            nn.Linear(12, 64),
             nn.ReLU(),
             nn.Linear(64, 32),
             nn.ReLU(),
